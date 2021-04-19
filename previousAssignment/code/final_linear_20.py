@@ -8,7 +8,7 @@ from sklearn.metrics import r2_score
 
 '''------------------------Reading the data---------------------------------'''
 
-filename = '/Users/srijeetchatterjee/Desktop/PYTHON_ML/Assignment_3_ELL784/data_ml_ass_3.txt'
+filename = '..\data\data_ml_ass_3.txt'
 
 x,y = [], []
 
@@ -187,8 +187,8 @@ print(sri.var(y - lin_reg_2.predict(poly_reg.fit_transform(X))))
  
 '''--------------Visualizing Train and Test Set separately ----------------'''
 
-#visualising the trainig set results 
-plt.scatter(X_train,y_train,color = 'R')
+# visualising the trainig set results
+plt.scatter(X_train,y_train,color = 'r')
 x = X_train
 y = lin_reg_2.predict(poly_reg.fit_transform(X_train))
 [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
@@ -196,7 +196,7 @@ plt.plot(x,y,color = 'Blue')
 plt.show()
 
 #visualising the test set results 
-plt.scatter(X_test,y_test,color = 'R')
+plt.scatter(X_test,y_test,color = 'r')
 x = X_test
 y = lin_reg_2.predict(poly_reg.fit_transform(X_test))
 [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
