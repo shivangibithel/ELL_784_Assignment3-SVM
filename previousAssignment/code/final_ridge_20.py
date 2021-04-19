@@ -9,7 +9,7 @@ from sklearn.metrics import r2_score
 
 '''------------------------Reading the data---------------------------------'''
 
-filename = '/Users/srijeetchatterjee/Desktop/PYTHON_ML/Assignment_3_ELL784/data_ml_ass_3.txt'
+filename = '..\data\data_ml_ass_3.txt'
 
 x,y = [], []
 
