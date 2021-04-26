@@ -1,13 +1,21 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import csv
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+
+import matplotlib.pyplot as plt
+import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+
+
+# add index is not given condition  --- already handled while parsing, in line 31
+# what is C and gamma and how to choose its value
+# manual cross validation
+# tsne -- optional  -- similar to pca visualization but used for non linear data
+# restructuring  -- done
 
 '''--------------------------Reading the train data---------------------------------'''
 
@@ -191,7 +199,7 @@ plt.show()
 '''------------Fitting SVM to the Training set(TRAINING)--------------------'''
 
 classifier = SVC(C=0.001, kernel='linear', random_state=0)
-classifier.fit(X_train, y_train)
+classifier.fit(X_train, y_train.ravel())
 print(classifier.coef_)
 print(classifier.intercept_)
 
@@ -204,7 +212,7 @@ y_pred_valid = classifier.predict(X_valid)
 cm = confusion_matrix(y_valid, y_pred_valid)
 print("confusion_matrix:", cm)
 
-Accuracy = (cm[0, 0] + cm[1, 1]) / (y_valid.size)
+Accuracy = (cm[0, 0] + cm[1, 1]) / y_valid.size
 print(Accuracy)
 
 '''------------Running in a loop(TRAIN -> Fit -> Accuracy) -------------------------'''
@@ -218,10 +226,10 @@ c_array = np.zeros((len(C_2d_range), 1))
 
 for C in C_2d_range:
     classifier = SVC(C=C, kernel='linear', random_state=0)
-    classifier.fit(X_train, y_train)
+    classifier.fit(X_train, y_train.ravel())
     y_pred_valid = classifier.predict(X_valid)
     cm = confusion_matrix(y_valid, y_pred_valid)
-    Accuracy = (cm[0, 0] + cm[1, 1]) / (y_valid.size)
+    Accuracy = (cm[0, 0] + cm[1, 1]) / y_valid.size
     # print (Accuracy)
     acc_array[i, 0] = Accuracy * 100
     c_array[i, 0] = C
@@ -249,8 +257,9 @@ gamma_2d_range = [1e-2, 1e-1, 1, 1e1, 1e+2]
 m1 = len(C_2d_range)
 
 acc_mat = np.zeros((m1, m1))
-i, j, max_acc, opt_gamma = (0,) * 4
+i, max_acc, opt_gamma = (0,) * 3
 
+# split on 50% data
 for C in C_2d_range:
     j = 0
     for gamma in gamma_2d_range:
@@ -261,19 +270,19 @@ for C in C_2d_range:
             y_train, y_valid = y[train_index], y[test_index]
 
             classifier = SVC(C=C, gamma=gamma, kernel='rbf', random_state=0)
-            classifier.fit(X_train, y_train)
+            classifier.fit(X_train, y_train.ravel())
 
             y_pred_valid = classifier.predict(X_valid)
 
             cm = confusion_matrix(y_valid, y_pred_valid)
 
-            Accuracy = (cm[0, 0] + cm[1, 1]) / (y_valid.size)
+            Accuracy = (cm[0, 0] + cm[1, 1]) / y_valid.size
 
             Avg_Acc = Avg_Acc + Accuracy
 
         Avg_Acc = Avg_Acc / 5
         print("Set Avg Acc = ", Avg_Acc * 100)
-        acc_mat[i][j] = (Avg_Acc) * 100
+        acc_mat[i][j] = Avg_Acc * 100
         if Avg_Acc * 100 > max_acc:
             max_acc = acc_mat[i][j]
             opt_C = C
@@ -290,7 +299,7 @@ plt.plot(acc_mat[:, 0])
 plt.show()
 
 classifier = SVC(C=opt_C, gamma=opt_gamma, kernel='rbf', random_state=0)
-classifier.fit(x, y)
+classifier.fit(x, y.ravel())
 print('Corresponding Optimal Intercept : ', classifier.intercept_)
 y_pred_test = classifier.predict(X_test)
 
