@@ -5,11 +5,14 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import median_absolute_error
 from sklearn.metrics import r2_score
+from sklearn.model_selection import KFold
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
 # 1. Degree values 1 to 11 ? Find the optimal range
 # 2. Merge the classes
 # 3. Check the regularizer alpha
-# 4. Dataset Update
-# 5. Fix the plot
+# 4. Dataset Update - Done
+# 5. Fix the plot - Done
 # 6. Check if KFold validation is required.
 '''------------------------Reading the data---------------------------------'''
 
@@ -35,7 +38,7 @@ y = y[0:20,:]
 
 '''------------------------Lets visualize the data ---------------------------------'''
 
-plt.scatter(X,y,cmap="Set1", alpha=0.4, edgecolors="grey", linewidth=2)
+plt.scatter(X,y,cmap="MediumVioletRed", alpha=0.4, edgecolors="grey", linewidth=2)
 plt.title("Scatter data")
 plt.xlabel("X values")
 plt.ylabel("y Values")
@@ -63,9 +66,7 @@ The regression model can explain about 47.45 % variation in the y values.
 '''-----------Lets try with different degree polynomial and plot-------------'''
 
 
-from sklearn.model_selection import KFold
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
+
 m_sqr_err_mat = np.zeros((11, 2))
 m_abs_err_mat = np.zeros((11, 2))
 med_abs_err_mat = np.zeros((11, 2))
@@ -158,21 +159,33 @@ error_matrix = np.hstack((m_sqr_err_mat, m_abs_err_mat, med_abs_err_mat, r2_good
 print(m_sqr_err_mat)
 plt.plot(np.log10(m_sqr_err_mat[:, 0]), color ='LightSlateGray')
 plt.plot(np.log10(m_sqr_err_mat[:, 1]), color ='MediumVioletRed')
+plt.title("Squared Error Matrix")
+plt.xlabel("Train Error")
+plt.ylabel("Test Error")
 plt.show()
 
 print(m_abs_err_mat)
 plt.plot(np.log10(m_abs_err_mat[:, 0]), color ='LightSlateGray')
 plt.plot(np.log10(m_abs_err_mat[:, 1]), color ='MediumVioletRed')
+plt.title("Absolute Error Matrix")
+plt.xlabel("Train Error")
+plt.ylabel("Test Error")
 plt.show()
 
 print(med_abs_err_mat)
 plt.plot(med_abs_err_mat[:,0],color = 'LightSlateGray')
 plt.plot(med_abs_err_mat[:,1],color = 'MediumVioletRed')
+plt.title("Median Absolute Error Matrix")
+plt.xlabel("Train Error")
+plt.ylabel("Test Error")
 plt.show()
 
 print(r2_goodness_of_fit)
 plt.plot(r2_goodness_of_fit[:,0],color = 'LightSlateGray')
 plt.plot(r2_goodness_of_fit[:,1],color = 'MediumVioletRed')
+plt.title("Goodness of fit")
+plt.xlabel("Train Error")
+plt.ylabel("Test Error")
 plt.show()
 
 '''---------------Fitting the Polynomial Regression Model and  -----------------'''
@@ -202,6 +215,9 @@ x = X_train
 y = lin_reg_2.predict(poly_reg.fit_transform(X_train))
 [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
 plt.plot(x,y,color = 'LightSlateGray')
+plt.xlabel('X Train')
+plt.ylabel('Predicted Y')
+plt.title('Training Set Results')
 plt.show()
 
 #visualising the test set results 
@@ -210,6 +226,9 @@ x = X_test
 y = lin_reg_2.predict(poly_reg.fit_transform(X_test))
 [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
 plt.plot(x,y,color = 'MediumVioletRed')
+plt.title('Test Set Results')
+plt.xlabel('X Test')
+plt.ylabel('Predicted Y')
 plt.show()
 
 
