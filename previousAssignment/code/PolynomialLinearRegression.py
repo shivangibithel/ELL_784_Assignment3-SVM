@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 import matplotlib.pyplot as plt 
 import csv
 from sklearn.metrics import mean_squared_error
@@ -8,17 +9,39 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-# 1. Degree values 1 to 11 ? Find the optimal range
-# 2. Merge the classes
-# 3. Check the regularizer alpha
+# 1. Degree values 1 to 11 ? Find the optimal range - In progress
+# 2. Merge the classes - In progress
+# 3. Check the regularizer alpha - Vishnu
 # 4. Dataset Update - Done
 # 5. Fix the plot - Done
 # 6. Check if KFold validation is required.
-'''------------------------Reading the data---------------------------------'''
-
 filename = '..\data\\regression_data.txt'
 
-x,y = [], []
+x = []
+y = []
+X = []
+training_count = 0
+# regression_type = 0
+
+'''------------------------Reading the data---------------------------------'''
+try:
+    training_count = int(input('Enter input training count: 20 or 100  :'))
+    print(training_count)
+    if(training_count !=20 and training_count !=100):
+        print("Training count should either be 20 or 100")
+        sys.exit(1)
+except:
+    sys.exit(1)
+# try:
+#     regression_type= int(input('==Enter type of Regression==\n 1. Linear \n 2. Regularized  :'))
+#     if (regression_type != 1 and regression_type != 2):
+#         print("Regression type should either be 1 or 2")
+#         sys.exit(1)
+# except:
+#     sys.exit(1)
+
+
+
 
 with open(filename,'r') as f:
     reader = csv.reader(f,delimiter=' ')
@@ -33,12 +56,12 @@ X = X.reshape((n,1))
 y = np.asarray(y, dtype = np.float64)
 y = y.reshape((n,1))
 
-X = X[0:20,:]
-y = y[0:20,:]
+X = X[0:training_count,:]
+y = y[0:training_count,:]
 
 '''------------------------Lets visualize the data ---------------------------------'''
 
-plt.scatter(X,y,cmap="MediumVioletRed", alpha=0.4, edgecolors="grey", linewidth=2)
+plt.scatter(X,y, color="MediumVioletRed", alpha=0.4)
 plt.title("Scatter data")
 plt.xlabel("X values")
 plt.ylabel("y Values")
@@ -162,7 +185,7 @@ plt.plot(np.log10(m_sqr_err_mat[:, 1]), color ='MediumVioletRed')
 plt.title("Squared Error Matrix")
 plt.xlabel("Train Error")
 plt.ylabel("Test Error")
-plt.show()
+# plt.show()
 
 print(m_abs_err_mat)
 plt.plot(np.log10(m_abs_err_mat[:, 0]), color ='LightSlateGray')
@@ -170,7 +193,7 @@ plt.plot(np.log10(m_abs_err_mat[:, 1]), color ='MediumVioletRed')
 plt.title("Absolute Error Matrix")
 plt.xlabel("Train Error")
 plt.ylabel("Test Error")
-plt.show()
+# plt.show()
 
 print(med_abs_err_mat)
 plt.plot(med_abs_err_mat[:,0],color = 'LightSlateGray')
@@ -178,7 +201,7 @@ plt.plot(med_abs_err_mat[:,1],color = 'MediumVioletRed')
 plt.title("Median Absolute Error Matrix")
 plt.xlabel("Train Error")
 plt.ylabel("Test Error")
-plt.show()
+# plt.show()
 
 print(r2_goodness_of_fit)
 plt.plot(r2_goodness_of_fit[:,0],color = 'LightSlateGray')
@@ -186,7 +209,7 @@ plt.plot(r2_goodness_of_fit[:,1],color = 'MediumVioletRed')
 plt.title("Goodness of fit")
 plt.xlabel("Train Error")
 plt.ylabel("Test Error")
-plt.show()
+# plt.show()
 
 '''---------------Fitting the Polynomial Regression Model and  -----------------'''
 
@@ -210,6 +233,7 @@ print(np.var(y - lin_reg_2.predict(poly_reg.fit_transform(X))))
 '''--------------Visualizing Train and Test Set separately ----------------'''
 
 # visualising the trainig set results
+plt.clf()
 plt.scatter(X_train,y_train,color = 'MediumVioletRed')
 x = X_train
 y = lin_reg_2.predict(poly_reg.fit_transform(X_train))
@@ -244,4 +268,5 @@ plt.ylabel("Y")
 plt.show()
 
 # if __name__ == '__main__':
-#     init()
+#      # init()
+#      parse()
