@@ -29,11 +29,12 @@ def parse_input(filename, x, y):
 
     return x, y
 
+
 def svm(C, X_train, y_train, X_valid, y_valid):
     classifier = SVC(C=C, kernel='linear', random_state=0)
     classifier.fit(X_train, y_train.ravel())
-    # print(classifier.coef_)
-    # print(classifier.intercept_)
+    print(classifier.coef_)
+    print(classifier.intercept_)
 
     # Predicting the Test set results(TESTING)
     y_pred_valid = classifier.predict(X_valid)
@@ -43,7 +44,8 @@ def svm(C, X_train, y_train, X_valid, y_valid):
     print("confusion_matrix:\n", cm)
 
     Accuracy = (cm[0, 0] + cm[1, 1]) / (y_valid.size)
-    print(Accuracy)
+    print("Accuracy = ", Accuracy*100)
+
 
 def optimize_linearK():
     i, max_acc, opt_C, opt_gamma = 0, 0, 0, 0
@@ -65,29 +67,35 @@ def optimize_linearK():
             opt_C = C
         i = i + 1
 
-    print("Maximum Accuracy : ", max_acc)
+    print("Maximum Accuracy : ", max_acc*100)
     print("Optimal Value of C is : ", opt_C)
 
-    plt.plot(acc_array)
-    plt.show()
+    # plt.plot(acc_array)
+    # plt.show()
     return opt_C
-def optimize_rbfK(X_valid):
-    DataSet = pd.DataFrame(X_valid)
+
+
+def optimize_rbfK():
+    DataSet1 = pd.DataFrame(x)
+    DataSet2 = pd.DataFrame(y)
+    DataSet = pd.concat([DataSet1, DataSet2], axis=1, ignore_index=True, sort=False)
+
     x_columns = np.r_[0:8]
+    X = DataSet.iloc[:, x_columns].values  # X feature vector
     C_range = [1, 10, 50, 100, 150]
-    gamma_2d_range = [0.001, 0.01, 0.1, 1, 10, 100]
+    gamma_range = [0.01, 0.1, 1, 10, 100]
 
     m1 = len(C_range)
 
     acc_mat = np.zeros((m1, m1))
-    q, p, max_acc, opt_gamma = 0, 0, 0, 0
+    q, p, max_acc, opt_gamma, opt_C = 0, 0, 0, 0, 0
 
     for C in C_range:
         p = 0
-        for gamma in gamma_2d_range:
+        for gamma in gamma_range:
             Avg_Acc = 0
             k = 5
-            ss = int(DataSet.shape[0] / k)
+            ss = int(X.shape[0] / k)
             for i in range(k):
                 x_kfold_test = DataSet.iloc[i * ss: (i + 1) * ss, x_columns].values  # Test subset
                 x_kfold_train = DataSet.iloc[
@@ -109,6 +117,7 @@ def optimize_rbfK(X_valid):
             acc_mat[q][p] = (Avg_Acc) * 100
             if Avg_Acc * 100 > max_acc:
                 max_acc = acc_mat[q][p]
+                # print(opt_C)
                 opt_C = C
                 opt_gamma = gamma
             p = p + 1
@@ -118,35 +127,48 @@ def optimize_rbfK(X_valid):
     print("Optimal Value of C is : ", opt_C)
     print("Optimal Value of Gamma : ", opt_gamma)
     print("Optimal Value of Sigma : ", np.sqrt(np.divide(1, 2 * opt_gamma)))
-    plt.plot(acc_mat[:, 0])
-    plt.show()
+    # plt.plot(acc_mat[:, 0])
+    # plt.show()
     return opt_C, opt_gamma
 
+
+def save_output(y_pred_test, filename_test, save_file_name_output):
+    row_num_test = 0
+    f = open(filename_test)
+    f1 = open(save_file_name_output, 'w+')
+
+    for line in f.readlines():
+        text = str(int(y_pred_test[row_num_test])) + line[1:]
+        f1.write(text)
+        row_num_test = row_num_test + 1
+
+    f.close()
+    f1.close()
 
 
 if __name__ == '__main__':
     # Read Train Data
-    df = pd.read_csv('..\data\RNA_train_data.txt', sep= " ",header=None)
+    df = pd.read_csv('..\data\RNA_train_data.txt', sep=" ", header=None)
     count = len(df)
-    print('No of Records = ', count)
-    x = np.zeros((count, 8)) # 8 features per record
-    y = np.zeros((count, 1)) # 1 label per record
+    print('No of Train Records = ', count)
+    x = np.zeros((count, 8))  # 8 features per record
+    y = np.zeros((count, 1))  # 1 label per record
     x, y = parse_input('..\data\RNA_train_data.txt', x, y)
     # np.savetxt('train_data.txt',x)
     # np.savetxt('train_label.txt',y)
 
     # Read Test Data
-    df = pd.read_csv('..\data\RNA_test_data.txt', sep= " ",header=None)
+    df = pd.read_csv('..\data\RNA_test_data.txt', sep=" ", header=None)
     count_test = len(df)
-    X_test = np.zeros((count_test, 8)) # 8 features per record
+    X_test = np.zeros((count_test, 8))  # 8 features per record
     y_test = np.zeros((count_test, 1))
+    print('No of Test Records = ', count_test)
     X_test, y_test = parse_input('..\data\RNA_test_data.txt', X_test, y_test)
     # np.savetxt('test_data.txt',X_test)
     # np.savetxt('test_label.txt',y_test)
 
     # 1. Spilt the training data set to form validation and training data sets. (50% random)
-    # Train and Validation Split
-    X_train, X_valid, y_train, y_valid = train_test_split(x, y, test_size=0.50, random_state=0)
+    X_train, X_valid, y_train, y_valid = train_test_split(x, y, test_size=0.50, random_state=42)
 
     # Feature Scaling
     sc = StandardScaler()
@@ -155,15 +177,17 @@ if __name__ == '__main__':
 
     '''Classification using linear SVM'''
 
-#   1. Train a set of linear SVMs with different values of the regularisation parameter C using the training data set.
+    #   1. Train a set of linear SVMs with different values of the regularisation parameter C using the training data set.
     opt_C = optimize_linearK()
-    svm(opt_C, X_train, y_train, X_valid, y_valid) # training svm with opt_C
+    svm(opt_C, X_train, y_train, X_valid, y_valid)  # training svm with opt_C
 
     '''Classification using Gaussian (RBF) kernel SVM'''
     # 1. choose 50% of the training set as the cross validation set. Next, divide the cross validation set into 5 subsets of equal size.
 
-    opt_C, opt_gamma = optimize_rbfK(X_valid)
+    opt_C, opt_gamma = optimize_rbfK()
     classifier = SVC(C=opt_C, gamma=opt_gamma, kernel='rbf', random_state=0)
-    classifier.fit(X_train, y_train.ravel())
+    classifier.fit(x, y.ravel())
     print('Corresponding Optimal Intercept : ', classifier.intercept_)
     y_pred_test = classifier.predict(X_test)
+
+    save_output(y_pred_test, '..\data\RNA_test_data.txt', '..\data\RNA_test_output.txt')
