@@ -127,12 +127,11 @@ def find_poly_degree(reg_type):
             r2_goodness_of_fit_test[i, j] = avg_r2_gof_test / k
 
             if (r2_goodness_of_fit_test[i, j] > max_gof):
-                print(r2_goodness_of_fit_test[i, j])
                 max_gof = r2_goodness_of_fit_test[i, j]
                 deg = i
                 opt_reg_lambda = reg_lambda
             j = j + 1
-    print(deg, opt_reg_lambda)
+    print('Optimal Degree ', deg, 'Optimal Lamda ', opt_reg_lambda)
 
     #Identifying fit of the model
     print("MSE ", m_sqr_err_mat_train, m_sqr_err_mat_test )
@@ -140,9 +139,6 @@ def find_poly_degree(reg_type):
         plt.plot(np.log10(m_sqr_err_mat_train[:,:]), color='LightSlateGray', label='Train Error')
         plt.plot(np.log10(m_sqr_err_mat_test[:,:]), color='MediumVioletRed', label='Test Error')
     else:
-        # TODO fix
-        print('Error Mat', m_sqr_err_mat_train[deg, :])
-        print('Error Test Mat', m_sqr_err_mat_test[deg, :])
         plt.plot(np.log10(m_sqr_err_mat_train[deg, :]), color='LightSlateGray', label='Train Error')
         plt.plot(np.log10(m_sqr_err_mat_test[deg, :]), color='MediumVioletRed', label='Test Error')
     if(reg_type ==0):
@@ -152,7 +148,7 @@ def find_poly_degree(reg_type):
     plt.ylabel('Error')
     plt.legend(loc="upper right")
     plt.show()
-    print("MAE ", m_abs_err_mat_train, m_abs_err_mat_test)
+    # print("MAE ", m_abs_err_mat_train, m_abs_err_mat_test)
     print("GOF ", r2_goodness_of_fit_test)
     return deg, opt_reg_lambda
 
@@ -160,39 +156,32 @@ def find_poly_degree(reg_type):
 def fit_model(deg, reg_lambda):
     global x_train, y_train, poly_reg, X_poly, reg_method, x, y
     # Fit Regression Model
-    x_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
+    # x_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
     poly_reg = PolynomialFeatures(degree=deg)
     X_poly = poly_reg.fit_transform(x_train)
     poly_reg.fit(X_poly, y_train)
     reg_method = Ridge(alpha=reg_lambda)
     reg_method.fit(X_poly, y_train)
+    print("Coefficient(s)")
     print(reg_method.coef_)
+    print("Intercept")
     print(reg_method.intercept_)
     print("Variance")
     print(np.var(y - reg_method.predict(poly_reg.fit_transform(x))))
-    # visualising the training set results
-    plt.scatter(x_train, y_train, color='MediumVioletRed', alpha=0.4)
-    x = x_train
-    y = reg_method.predict(poly_reg.fit_transform(x_train))
-    [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
-    plt.plot(x, y, color='LightSlateGray', label='Polynomial Curve of best fit')
-    plt.title('Training set prediction using derived Model')
-    plt.xlabel("X ")
-    plt.ylabel("Y")
-    plt.show()
-    # visualising the test set results
-    x = X_test
-    y = reg_method.predict(poly_reg.fit_transform(X_test))
-    [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
+    # visualising the data prediction results
+    plt.scatter(x, y, color='MediumVioletRed', alpha=0.4, label='Data')
     X_grid = np.arange(min(x), max(x), 0.001)
     X_grid = X_grid.reshape(len(X_grid), 1)
-    plt.scatter(X_test, y_test, color='MediumVioletRed',alpha=0.4)
-    plt.plot(X_grid, reg_method.predict(poly_reg.fit_transform(X_grid)), color='LightSlateGray')
-    plt.title("Testing set prediction using derived Model")
+    x = X_grid
+    y = reg_method.predict(poly_reg.fit_transform(X_grid))
+    [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
+    plt.plot(x, y, color='LightSlateGray', label='Model')
+    # plt.title('Data vs Model')
     plt.xlabel("X ")
     plt.ylabel("Y")
+    # plt.legend('upper right')
+    # plt.tight_layout()
     plt.show()
-
 
 if __name__ == '__main__':
     reg_type = parse_input()
