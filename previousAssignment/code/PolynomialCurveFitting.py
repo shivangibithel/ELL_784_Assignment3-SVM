@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import csv
 import sys
 from sklearn.metrics import mean_squared_error
@@ -73,7 +73,22 @@ def parse_input():
     plt.show()
     return reg_type
 
-#Find the optimal degree for the polynomial
+# self implementation of k-fold
+def kfold(k_idx, data_len):
+    # Using 80-20 rule
+    test_index_len = int(0.2*data_len)
+    train_index_len = int(0.8*data_len)
+    test_index = np.array([], dtype=np.int)
+    total_idx = np.arange(0,data_len)
+    test_idx= np.arange(0, data_len, test_index_len)
+    curr_test_idx = test_idx[k_idx]
+    test_index = np.arange(curr_test_idx, curr_test_idx + test_index_len)
+    train_index = np.array(list(set(total_idx.tolist()) - set(test_index.tolist())))
+    train_index = train_index.astype(int)
+    return train_index, test_index
+
+
+# Find the optimal degree for the polynomial
 def find_poly_degree(reg_type):
     global deg, poly_reg, x_train, y_train, X_poly, reg_method
     if reg_type == 0:
@@ -85,17 +100,19 @@ def find_poly_degree(reg_type):
     degree_range = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     deg, max_gof, reg_lambda = 0, 0, 0
     k = 5
+    k_range = [0,1,2,3,4]
+    data_len = len(x)
     # data_x = pd.DataFrame(x)
     # ss = int(data_x.shape[0] / k)
     r2_gof_train, mse_mat_train, mae_mat_train, r2_gof_test, mse_mat_test, mae_mat_test = np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len)),np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len))
     for poly_degree in degree_range:
         poly_reg = PolynomialFeatures(degree=poly_degree)
         lambda_idx = 0
+
         for reg_lambda in lambda_range:
-            kf = KFold(n_splits=k, random_state=None, shuffle=False)
             mse_train_error_arr, mse_test_error_arr, mae_train_error_arr, mae_test_error_arr, train_fit_arr, test_fit_arr = np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k)
-            k_idx = 0
-            for train_index, test_index in kf.split(x):
+            for k_idx in k_range:
+                train_index, test_index = kfold(k_idx, data_len)
                 x_train, x_valid = x[train_index], x[test_index]
                 y_train, y_valid = y[train_index], y[test_index]
                 X_poly = poly_reg.fit_transform(x_train)
@@ -113,7 +130,7 @@ def find_poly_degree(reg_type):
                 train_fit_arr[k_idx] = r2_score(y_train, reg_method.predict(X_poly))
                 test_fit_arr[k_idx] =  r2_score(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid)))
 
-                k_idx = k_idx + 1
+                # k_idx = k_idx + 1
             # Average over k folds
             mse_mat_train[poly_degree, lambda_idx] = np.average(mse_train_error_arr)
             mse_mat_test[poly_degree, lambda_idx] = np.average(mse_test_error_arr)
@@ -126,7 +143,7 @@ def find_poly_degree(reg_type):
                 deg = poly_degree
                 opt_reg_lambda = reg_lambda
             lambda_idx = lambda_idx + 1
-    print('Optimal Degree ', deg, 'Optimal Lamda ', opt_reg_lambda)
+    print('Optimal Degree ', deg, 'Optimal Lambda ', opt_reg_lambda)
 
     #Identifying fit of the model
     print("MSE ", mse_mat_train, mse_mat_test )
