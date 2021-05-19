@@ -86,13 +86,14 @@ def find_poly_degree(reg_type):
     degree_range = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     deg, max_gof, reg_lambda = 0, 0, 0
     k = 5
-    r2_goodness_of_fit_train, mse_mat_train, mae_mat_train,r2_goodness_of_fit_test, mse_mat_test, mae_mat_test = np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len)),np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len))
+    r2_gof_train, mse_mat_train, mae_mat_train, r2_gof_test, mse_mat_test, mae_mat_test = np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len)),np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len))
     for poly_degree in degree_range:
         poly_reg = PolynomialFeatures(degree=poly_degree)
         lambda_idx = 0
         for reg_lambda in lambda_range:
-            avg_mse_mat_train, avg_mse_mat_test, avg_mae_mat_train, avg_mae_mat_test, avg_r2_gof_train, avg_r2_gof_test = 0, 0, 0, 0, 0, 0
             kf = KFold(n_splits=k, random_state=None, shuffle=False)
+            mse_train_error_arr, mse_test_error_arr, mae_train_error_arr, mae_test_error_arr, train_fit_arr, test_fit_arr = np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k)
+            k_idx = 0
             for train_index, test_index in kf.split(x):
                 x_train, x_valid = x[train_index], x[test_index]
                 y_train, y_valid = y[train_index], y[test_index]
@@ -100,33 +101,26 @@ def find_poly_degree(reg_type):
                 poly_reg.fit(X_poly, y_train)
                 reg_method = Ridge(alpha=reg_lambda)
                 reg_method.fit(X_poly, y_train)
+                # Mean Square Error
+                mse_train_error_arr[k_idx] = (mean_squared_error(y_train, reg_method.predict(X_poly)))
+                mse_test_error_arr[k_idx] = (mean_squared_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
+                # Mean Absolute Error
+                mae_train_error_arr[k_idx] = (mean_absolute_error(y_train, reg_method.predict(X_poly)))
+                mae_test_error_arr[k_idx] = (mean_absolute_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
+                # Goodness of Fit
+                train_fit_arr[k_idx] = (r2_score(y_train, reg_method.predict(X_poly)))
+                test_fit_arr[k_idx] = (r2_score(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
 
-                mse_train_error = (mean_squared_error(y_train, reg_method.predict(X_poly)))
-                mse_test_error = (mean_squared_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
-
-                avg_mse_mat_train += mse_train_error
-                avg_mse_mat_test += mse_test_error
-
-                mae_train_error = (mean_absolute_error(y_train, reg_method.predict(X_poly)))
-                mse_train_error = (mean_absolute_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
-
-                avg_mae_mat_train += mae_train_error
-                avg_mae_mat_test += mse_train_error
-
-                train_fit = (r2_score(y_train, reg_method.predict(X_poly)))
-                test_fit = (r2_score(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
-
-                avg_r2_gof_train += train_fit
-                avg_r2_gof_test += test_fit
+                k_idx = k_idx + 1
             # Average over k folds
-            mse_mat_train[poly_degree, lambda_idx] = avg_mse_mat_train / k
-            mse_mat_test[poly_degree, lambda_idx] = avg_mse_mat_test / k
-            mae_mat_train[poly_degree, lambda_idx] = avg_mae_mat_train / k
-            mae_mat_test[poly_degree, lambda_idx] = avg_mae_mat_test / k
-            r2_goodness_of_fit_train[poly_degree, lambda_idx] = avg_r2_gof_train / k
-            r2_goodness_of_fit_test[poly_degree, lambda_idx] = avg_r2_gof_test / k
-            if (r2_goodness_of_fit_test[poly_degree, lambda_idx] > max_gof):
-                max_gof = r2_goodness_of_fit_test[poly_degree, lambda_idx]
+            mse_mat_train[poly_degree, lambda_idx] = np.average(mse_train_error_arr)
+            mse_mat_test[poly_degree, lambda_idx] = np.average(mse_test_error_arr)
+            mae_mat_train[poly_degree, lambda_idx] = np.average(mae_train_error_arr)
+            mae_mat_test[poly_degree, lambda_idx] = np.average(mae_test_error_arr)
+            r2_gof_train[poly_degree, lambda_idx] = np.average(train_fit_arr)
+            r2_gof_test[poly_degree, lambda_idx] = np.average(test_fit_arr)
+            if (r2_gof_test[poly_degree, lambda_idx] > max_gof):
+                max_gof = r2_gof_test[poly_degree, lambda_idx]
                 deg = poly_degree
                 opt_reg_lambda = reg_lambda
             lambda_idx = lambda_idx + 1
@@ -148,7 +142,7 @@ def find_poly_degree(reg_type):
     plt.legend(loc="upper right")
     plt.show()
     # print("MAE ", m_abs_err_mat_train, m_abs_err_mat_test)
-    print("GOF ", r2_goodness_of_fit_test)
+    print("GOF ", r2_gof_test)
     return deg, opt_reg_lambda
 
 #  Fit Model to Data
