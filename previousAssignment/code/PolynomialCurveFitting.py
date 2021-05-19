@@ -6,10 +6,9 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold
-from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import Ridge
+import pandas as pd
 # Problem Statement
 # ==================
 # To begin with, use only the first 20 data points in your file.
@@ -86,6 +85,8 @@ def find_poly_degree(reg_type):
     degree_range = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     deg, max_gof, reg_lambda = 0, 0, 0
     k = 5
+    # data_x = pd.DataFrame(x)
+    # ss = int(data_x.shape[0] / k)
     r2_gof_train, mse_mat_train, mae_mat_train, r2_gof_test, mse_mat_test, mae_mat_test = np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len)),np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len))
     for poly_degree in degree_range:
         poly_reg = PolynomialFeatures(degree=poly_degree)
@@ -101,15 +102,16 @@ def find_poly_degree(reg_type):
                 poly_reg.fit(X_poly, y_train)
                 reg_method = Ridge(alpha=reg_lambda)
                 reg_method.fit(X_poly, y_train)
+
                 # Mean Square Error
-                mse_train_error_arr[k_idx] = (mean_squared_error(y_train, reg_method.predict(X_poly)))
-                mse_test_error_arr[k_idx] = (mean_squared_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
+                mse_train_error_arr[k_idx] = mean_squared_error(y_train, reg_method.predict(X_poly))
+                mse_test_error_arr[k_idx] = mean_squared_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid)))
                 # Mean Absolute Error
-                mae_train_error_arr[k_idx] = (mean_absolute_error(y_train, reg_method.predict(X_poly)))
-                mae_test_error_arr[k_idx] = (mean_absolute_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
+                mae_train_error_arr[k_idx] = mean_absolute_error(y_train, reg_method.predict(X_poly))
+                mae_test_error_arr[k_idx] = mean_absolute_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid)))
                 # Goodness of Fit
-                train_fit_arr[k_idx] = (r2_score(y_train, reg_method.predict(X_poly)))
-                test_fit_arr[k_idx] = (r2_score(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
+                train_fit_arr[k_idx] = r2_score(y_train, reg_method.predict(X_poly))
+                test_fit_arr[k_idx] =  r2_score(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid)))
 
                 k_idx = k_idx + 1
             # Average over k folds
@@ -131,17 +133,15 @@ def find_poly_degree(reg_type):
     if(reg_type == 0):
         plt.plot(np.log10(mse_mat_train[:,:]), color='LightSlateGray', label='Train Error')
         plt.plot(np.log10(mse_mat_test[:,:]), color='MediumVioletRed', label='Test Error')
+        plt.xlabel('Degree')
     else:
         plt.plot(np.log10(mse_mat_train[deg, :]), color='LightSlateGray', label='Train Error')
         plt.plot(np.log10(mse_mat_test[deg, :]), color='MediumVioletRed', label='Test Error')
-    if(reg_type ==0):
-        plt.xlabel('Degree')
-    else:
-        plt.xlabel('Lambda(Regularization)')
+        plt.xlabel('Regularizer Lambda Index in Range [1e-2, 1e-1, 1, 10, 100]')
     plt.ylabel('Error')
     plt.legend(loc="upper right")
     plt.show()
-    # print("MAE ", m_abs_err_mat_train, m_abs_err_mat_test)
+    print("MAE ", mae_mat_train, mae_mat_test)
     print("GOF ", r2_gof_test)
     return deg, opt_reg_lambda
 
