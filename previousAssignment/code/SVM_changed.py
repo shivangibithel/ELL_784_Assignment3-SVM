@@ -86,14 +86,14 @@ def save_data(save_file_name, x, y, X_train, X_valid, y_train, y_valid, X_test):
 def pca(n_components, x):
     pca_ = PCA(n_components)
     pca_result = pca_.fit_transform(x)
-    plt.scatter(pca_result[:, 0], pca_result[:, 1])
+    # plt.scatter(pca_result[:, 0], pca_result[:, 1])
 
 
 def tsne(n_components, x):
     x_tsne = TSNE(n_components).fit_transform(x)
     print(x_tsne.shape)
-    plt.scatter(x_tsne[:, 0], x_tsne[:, 1])
-    plt.show()
+    # plt.scatter(x_tsne[:, 0], x_tsne[:, 1])
+    # plt.show()
     return x_tsne
 
 
@@ -139,8 +139,8 @@ def optimize_linearK():
     print("Maximum Accuracy : ", max_acc)
     print("Optimal Value of C is : ", opt_C)
 
-    plt.plot(acc_array)
-    plt.show()
+    # plt.plot(acc_array)
+    # plt.show()
     return opt_C
 
 
@@ -188,8 +188,8 @@ def optimize_rbf():
     print("Optimal Value of Gamma : ", opt_gamma)
     print("Optimal Value of Sigma : ", np.sqrt(np.divide(1, 2 * opt_gamma)))
 
-    plt.plot(acc_mat[:, 0])
-    plt.show()
+    # plt.plot(acc_mat[:, 0])
+    # plt.show()
     return opt_C, opt_gamma
 
 
@@ -243,7 +243,7 @@ if __name__ == '__main__':
     n_components = 2
 
     # PCA Visualization
-    pca(n_components, x)
+    # pca(n_components, x)
 
     # t-SNE Visualization
     x_tsne = tsne(n_components, x)
@@ -263,9 +263,9 @@ if __name__ == '__main__':
     x_1 = x_1.reshape(-1, n_components)
     x_2 = x_2.reshape(-1, n_components)
 
-    plt.scatter(x_1[:, 0], x_1[:, 1], color='red')
-    plt.scatter(x_2[:, 0], x_2[:, 1], color='blue')
-    plt.show()
+    # plt.scatter(x_1[:, 0], x_1[:, 1], color='red')
+    # plt.scatter(x_2[:, 0], x_2[:, 1], color='blue')
+    # plt.show()
 
     # Fitting SVM to the Training set(TRAINING)
     # svm(0.001, X_train, y_train, X_valid, y_valid)
