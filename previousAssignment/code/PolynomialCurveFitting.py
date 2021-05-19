@@ -82,12 +82,11 @@ def find_poly_degree(reg_type):
         lambda_range = [0]
     else:
         lambda_range = [1e-2, 1e-1, 1, 10, 1e2]
-
+    lambda_len = len(lambda_range)
     degree_range = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    # degree_range = [7,8]
     deg, max_gof, reg_lambda = 0, 0, 0
     k = 5
-    r2_goodness_of_fit, m_sqr_err_mat, m_abs_err_mat = np.zeros((11, 2)), np.zeros((11, 2)), np.zeros((11, 2))
+    r2_goodness_of_fit_train, m_sqr_err_mat_train, m_abs_err_mat_train,r2_goodness_of_fit_test, m_sqr_err_mat_test, m_abs_err_mat_test = np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len)),np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len))
     for i in degree_range:
         poly_reg = PolynomialFeatures(degree=i)
         j = 0
@@ -104,61 +103,53 @@ def find_poly_degree(reg_type):
 
                 train_error_poly_1 = (mean_squared_error(y_train, reg_method.predict(X_poly)))
                 test_error_poly_1 = (mean_squared_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
-                m_sqr_err_mat[i, 0] = train_error_poly_1
-                m_sqr_err_mat[i, 1] = test_error_poly_1
 
-                avg_m_sqr_err_mat_train = avg_m_sqr_err_mat_train + m_sqr_err_mat[i, 0]
-                avg_m_sqr_err_mat_test = avg_m_sqr_err_mat_test + m_sqr_err_mat[i, 1]
+                avg_m_sqr_err_mat_train += train_error_poly_1
+                avg_m_sqr_err_mat_test += test_error_poly_1
 
                 train_error_poly_2 = (mean_absolute_error(y_train, reg_method.predict(X_poly)))
                 test_error_poly_2 = (mean_absolute_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
-                m_abs_err_mat[i, 0] = train_error_poly_2
-                m_abs_err_mat[i, 1] = test_error_poly_2
 
-                avg_m_abs_err_mat_train = avg_m_abs_err_mat_train + m_abs_err_mat[i, 0]
-                avg_m_abs_err_mat_test = avg_m_abs_err_mat_test + m_abs_err_mat[i, 1]
+                avg_m_abs_err_mat_train += train_error_poly_2
+                avg_m_abs_err_mat_test += test_error_poly_2
 
                 train_fit = (r2_score(y_train, reg_method.predict(X_poly)))
                 test_fit = (r2_score(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid))))
-                r2_goodness_of_fit[i, 0] = train_fit
-                r2_goodness_of_fit[i, 1] = test_fit
 
-                avg_r2_gof_train = avg_r2_gof_train + r2_goodness_of_fit[i, 0]
-                avg_r2_gof_test = avg_r2_gof_test + r2_goodness_of_fit[i, 1]
-            # print(i)
-            # print(reg_lambda)
-            m_sqr_err_mat[i, 0] = avg_m_sqr_err_mat_train / k
-            # print(m_sqr_err_mat[i, 0])
-            m_sqr_err_mat[i, 1] = avg_m_sqr_err_mat_test / k
-            # print(m_sqr_err_mat[i, 1])
+                avg_r2_gof_train += train_fit
+                avg_r2_gof_test += test_fit
+            # Average over k folds
+            m_sqr_err_mat_train[i, j] = avg_m_sqr_err_mat_train / k
+            m_sqr_err_mat_test[i, j] = avg_m_sqr_err_mat_test / k
+            m_abs_err_mat_train[i, j] = avg_m_abs_err_mat_train / k
+            m_abs_err_mat_test[i, j] = avg_m_abs_err_mat_test / k
+            r2_goodness_of_fit_train[i, j] = avg_r2_gof_train / k
+            r2_goodness_of_fit_test[i, j] = avg_r2_gof_test / k
 
-            m_abs_err_mat[i, 0] = avg_m_abs_err_mat_train / k
-            m_abs_err_mat[i, 1] = avg_m_abs_err_mat_test / k
-
-            r2_goodness_of_fit[i, 0] = avg_r2_gof_train / k
-            # print(r2_goodness_of_fit[i, 0])
-            r2_goodness_of_fit[i, 1] = avg_r2_gof_test / k
-            # print(r2_goodness_of_fit[i, 1])
-
-            if (r2_goodness_of_fit[i, 1] > max_gof):
-                print(r2_goodness_of_fit[i, 1])
-                max_gof = r2_goodness_of_fit[i, 1]
+            if (r2_goodness_of_fit_test[i, j] > max_gof):
+                print(r2_goodness_of_fit_test[i, j])
+                max_gof = r2_goodness_of_fit_test[i, j]
                 deg = i
                 opt_reg_lambda = reg_lambda
             # j = j + 1
     print(deg, opt_reg_lambda)
 
     #Identifying fit of the model
-    print("MSE ", m_sqr_err_mat)
-    plt.plot(np.log10(m_sqr_err_mat[:, 0]), color='LightSlateGray', label='Train Error')
-    plt.plot(np.log10(m_sqr_err_mat[:, 1]), color='MediumVioletRed', label='Test Error')
+    print("MSE ", m_sqr_err_mat_train, m_sqr_err_mat_test )
+    if(reg_type == 0):
+        plt.plot(np.log10(m_sqr_err_mat_train[:,:]), color='LightSlateGray', label='Train Error')
+        plt.plot(np.log10(m_sqr_err_mat_test[:,:]), color='MediumVioletRed', label='Test Error')
+    else:
+        # TODO fix
+        plt.plot(np.log10(m_sqr_err_mat_train[:, :]), color='LightSlateGray', label='Train Error')
+        plt.plot(np.log10(m_sqr_err_mat_test[:, :]), color='MediumVioletRed', label='Test Error')
     plt.xlabel('Degree')
     plt.ylabel('Error')
     plt.legend(loc="upper right")
     plt.show()
-    print("MAE ", m_abs_err_mat)
-    print("GOF ", r2_goodness_of_fit)
-    return deg, reg_lambda
+    print("MAE ", m_abs_err_mat_train, m_abs_err_mat_test)
+    print("GOF ", r2_goodness_of_fit_test)
+    return deg, opt_reg_lambda
 
 
 def fit_model(deg, reg_lambda):
@@ -181,22 +172,20 @@ def fit_model(deg, reg_lambda):
     x = x_train
     y = reg_method.predict(poly_reg.fit_transform(x_train))
     [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
-    plt.plot(x, y, color='LightSlateGray')
-    plt.title('Train Data Model Fit')
+    plt.plot(x, y, color='LightSlateGray', label='Polynomial Curve of best fit')
+    plt.title('Training Data Prediction using Model')
+    plt.xlabel("X ")
+    plt.ylabel("Y")
     plt.show()
     # visualising the test set results
-    # plt.scatter(X_test, y_test, color='MediumVioletRed')
     x = X_test
     y = reg_method.predict(poly_reg.fit_transform(X_test))
     [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
-    # plt.plot(x, y, color='LightSlateGray')
-    # plt.show()
-
-    X_grid = np.arange(min(x), max(x), 0.1)
+    X_grid = np.arange(min(x), max(x), 0.001)
     X_grid = X_grid.reshape(len(X_grid), 1)
     plt.scatter(X_test, y_test, color='MediumVioletRed',alpha=0.4)
     plt.plot(X_grid, reg_method.predict(poly_reg.fit_transform(X_grid)), color='LightSlateGray')
-    plt.title("Test Data Prediction")
+    plt.title("Testing Data Prediction using Model")
     plt.xlabel("X ")
     plt.ylabel("Y")
     plt.show()
