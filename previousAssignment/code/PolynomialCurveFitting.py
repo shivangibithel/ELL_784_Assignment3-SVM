@@ -45,7 +45,7 @@ def parse_input():
 
     try:
         reg_type = int(input('Please enter the type of regression which needs to be performed.'
-                                   '\n 1. ''0'' for non-regularized &  \n 2. ''1'' for regularized :'))
+                                   '\n 1. ''0'' for non-regularized  \n 2. ''1'' for regularized :'))
         print(reg_type)
         if (reg_type != 0 and reg_type != 1):
             print("Regression Type can either be 0 or 1")
@@ -131,7 +131,7 @@ def find_poly_degree(reg_type):
                 max_gof = r2_goodness_of_fit_test[i, j]
                 deg = i
                 opt_reg_lambda = reg_lambda
-            # j = j + 1
+            j = j + 1
     print(deg, opt_reg_lambda)
 
     #Identifying fit of the model
@@ -141,9 +141,14 @@ def find_poly_degree(reg_type):
         plt.plot(np.log10(m_sqr_err_mat_test[:,:]), color='MediumVioletRed', label='Test Error')
     else:
         # TODO fix
-        plt.plot(np.log10(m_sqr_err_mat_train[:, :]), color='LightSlateGray', label='Train Error')
-        plt.plot(np.log10(m_sqr_err_mat_test[:, :]), color='MediumVioletRed', label='Test Error')
-    plt.xlabel('Degree')
+        print('Error Mat', m_sqr_err_mat_train[deg, :])
+        print('Error Test Mat', m_sqr_err_mat_test[deg, :])
+        plt.plot(np.log10(m_sqr_err_mat_train[deg, :]), color='LightSlateGray', label='Train Error')
+        plt.plot(np.log10(m_sqr_err_mat_test[deg, :]), color='MediumVioletRed', label='Test Error')
+    if(reg_type ==0):
+        plt.xlabel('Degree')
+    else:
+        plt.xlabel('Lambda(Regularization)')
     plt.ylabel('Error')
     plt.legend(loc="upper right")
     plt.show()
@@ -151,13 +156,11 @@ def find_poly_degree(reg_type):
     print("GOF ", r2_goodness_of_fit_test)
     return deg, opt_reg_lambda
 
-
+#  Fit Model to Data
 def fit_model(deg, reg_lambda):
     global x_train, y_train, poly_reg, X_poly, reg_method, x, y
     # Fit Regression Model
     x_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
-    #16 Test data points
-    # 4 Train data points
     poly_reg = PolynomialFeatures(degree=deg)
     X_poly = poly_reg.fit_transform(x_train)
     poly_reg.fit(X_poly, y_train)
@@ -173,7 +176,7 @@ def fit_model(deg, reg_lambda):
     y = reg_method.predict(poly_reg.fit_transform(x_train))
     [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
     plt.plot(x, y, color='LightSlateGray', label='Polynomial Curve of best fit')
-    plt.title('Training Data Prediction using Model')
+    plt.title('Training set prediction using derived Model')
     plt.xlabel("X ")
     plt.ylabel("Y")
     plt.show()
@@ -185,7 +188,7 @@ def fit_model(deg, reg_lambda):
     X_grid = X_grid.reshape(len(X_grid), 1)
     plt.scatter(X_test, y_test, color='MediumVioletRed',alpha=0.4)
     plt.plot(X_grid, reg_method.predict(poly_reg.fit_transform(X_grid)), color='LightSlateGray')
-    plt.title("Testing Data Prediction using Model")
+    plt.title("Testing set prediction using derived Model")
     plt.xlabel("X ")
     plt.ylabel("Y")
     plt.show()
