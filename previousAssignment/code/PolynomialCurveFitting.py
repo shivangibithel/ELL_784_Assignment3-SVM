@@ -98,7 +98,7 @@ def find_poly_degree(reg_type):
         lambda_range = [1e-2, 1e-1, 1, 10, 1e2]
     lambda_len = len(lambda_range)
     degree_range = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    deg, max_gof, reg_lambda = 0, 0, 0
+    deg, best_gof, reg_lambda = 0, 0, 0
     k = 5
     k_range = [0,1,2,3,4]
     data_len = len(x)
@@ -123,14 +123,12 @@ def find_poly_degree(reg_type):
                 mse_train_error_arr[k_idx],mae_train_error_arr[k_idx], train_fit_arr[k_idx] = training_metrics(polyfit_x, reg_method, y_train)
                 mse_test_error_arr[k_idx],  mae_test_error_arr[k_idx], test_fit_arr[k_idx] = training_metrics(poly_reg.fit_transform(x_valid), reg_method, y_valid)
             # Average over k folds
-            mse_mat_train[poly_degree, lambda_idx] = np.average(mse_train_error_arr)
-            mse_mat_test[poly_degree, lambda_idx] = np.average(mse_test_error_arr)
-            mae_mat_train[poly_degree, lambda_idx] = np.average(mae_train_error_arr)
-            mae_mat_test[poly_degree, lambda_idx] = np.average(mae_test_error_arr)
-            r2_gof_train[poly_degree, lambda_idx] = np.average(train_fit_arr)
-            r2_gof_test[poly_degree, lambda_idx] = np.average(test_fit_arr)
-            if (r2_gof_test[poly_degree, lambda_idx] > max_gof):
-                max_gof = r2_gof_test[poly_degree, lambda_idx]
+
+            mse_mat_train[poly_degree, lambda_idx], mse_mat_test[poly_degree, lambda_idx], mae_mat_train[poly_degree, lambda_idx], mae_mat_test[poly_degree, lambda_idx], r2_gof_train[poly_degree, lambda_idx], r2_gof_test[poly_degree, lambda_idx]\
+                = np.average(mse_train_error_arr), np.average(mse_test_error_arr), np.average(mae_train_error_arr), np.average(mae_test_error_arr), np.average(train_fit_arr), np.average(test_fit_arr)
+
+            if (r2_gof_test[poly_degree, lambda_idx] > best_gof):
+                best_gof = r2_gof_test[poly_degree, lambda_idx]
                 deg = poly_degree
                 opt_reg_lambda = reg_lambda
             lambda_idx = lambda_idx + 1
