@@ -1,14 +1,10 @@
 import csv
-import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
+import pandas as pd
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
-
 
 def parse_input(filename, x, y):
     row_num = 0
@@ -29,31 +25,13 @@ def parse_input(filename, x, y):
 
     return x, y
 
-
-def svm(C, X_train, y_train, X_valid, y_valid):
-    classifier = SVC(C=C, kernel='linear', random_state=0)
-    classifier.fit(X_train, y_train.ravel())
-    print(classifier.coef_)
-    print(classifier.intercept_)
-
-    # Predicting the Test set results(TESTING)
-    y_pred_valid = classifier.predict(X_valid)
-
-    # Performance(Confusion Matrix and Efficiency)
-    cm = confusion_matrix(y_valid, y_pred_valid)
-    print("confusion_matrix:\n", cm)
-
-    Accuracy = (cm[0, 0] + cm[1, 1]) / (y_valid.size)
-    print("Accuracy = ", Accuracy*100)
-
-
-def optimize_linearK():
+def linear_kernel():
     i, max_acc, opt_C, opt_gamma = 0, 0, 0, 0
-    C_range = [0.001, 0.01, 0.1, 1, 10, 100]
-    acc_array = np.zeros((len(C_range), 1))
-    c_array = np.zeros((len(C_range), 1))
+    C_values = [0.001, 0.01, 0.1, 1, 10, 100, 150, 200]
+    acc_array = np.zeros((len(C_values), 1))
+    c_array = np.zeros((len(C_values), 1))
 
-    for C in C_range:
+    for C in C_values:
         classifier = SVC(C=C, kernel='linear', random_state=0)
         classifier.fit(X_train, y_train.ravel())
         y_pred_valid = classifier.predict(X_valid)
@@ -67,23 +45,43 @@ def optimize_linearK():
             opt_C = C
         i = i + 1
 
-    print("Maximum Accuracy : ", max_acc*100)
+    print("Maximum Accuracy : ", max_acc * 100)
     print("Optimal Value of C is : ", opt_C)
+    # print(acc_array)
+    # print(c_array)
 
-    # plt.plot(acc_array)
+    # plt.plot(c_array, acc_array)
+    # plt.xlabel("C Value")
+    # plt.ylabel("Accuracy Value")
+    # plt.yscale('linear')
+    # plt.grid(True)
+    # plt.xscale('log')
     # plt.show()
     return opt_C
 
+def svm(C, X_train, y_train, X_valid, y_valid):
+    classifier = SVC(C=C, kernel='linear', random_state=0)
+    classifier.fit(X_train, y_train.ravel())
+    print("Coefficient of the optimal Classifier", classifier.coef_)
+    print("Intercept of the optimal Classifier", classifier.intercept_)
 
-def optimize_rbfK():
-    DataSet1 = pd.DataFrame(x)
-    DataSet2 = pd.DataFrame(y)
+    y_valid_pred = classifier.predict(X_valid)
+
+    cm = confusion_matrix(y_valid, y_valid_pred)
+    print("confusion_matrix:\n", cm)
+
+    Accuracy = (cm[0, 0] + cm[1, 1]) / (y_valid.size)
+    print("Accuracy = ", Accuracy * 100)
+
+def RBF_Kernel():
+    DataSet1 = pd.DataFrame(X_valid)
+    DataSet2 = pd.DataFrame(y_valid)
     DataSet = pd.concat([DataSet1, DataSet2], axis=1, ignore_index=True, sort=False)
 
     x_columns = np.r_[0:8]
     X = DataSet.iloc[:, x_columns].values  # X feature vector
-    C_range = [1, 10, 50, 100, 150]
-    gamma_range = [0.01, 0.1, 1, 10, 100]
+    C_range = [0.001, 0.01, 0.1, 1, 10, 100, 150, 200]
+    gamma_range = [0.001,0.01, 0.1, 1, 10, 100, 150, 200]
 
     m1 = len(C_range)
 
@@ -111,8 +109,8 @@ def optimize_rbfK():
 
                 cm = confusion_matrix(y_kfold_test, y_kfold_pred)
                 Accuracy = (cm[0, 0] + cm[1, 1]) / (y_kfold_test.size)
-                Avg_Acc = Avg_Acc + Accuracy
-            Avg_Acc = Avg_Acc / 5
+                Avg_Acc = Avg_Acc + Accuracy  # +=
+            Avg_Acc = Avg_Acc / 5   #np.avg_accuracy
             print("Set Avg Acc = ", Avg_Acc * 100)
             acc_mat[q][p] = (Avg_Acc) * 100
             if Avg_Acc * 100 > max_acc:
@@ -124,7 +122,7 @@ def optimize_rbfK():
         q = q + 1
     print(acc_mat)
     print("Maximum Accuracy : ", max_acc)
-    print("Optimal Value of C is : ", opt_C)
+    print("Optimal Value of C : ", opt_C)
     print("Optimal Value of Gamma : ", opt_gamma)
     print("Optimal Value of Sigma : ", np.sqrt(np.divide(1, 2 * opt_gamma)))
     # plt.plot(acc_mat[:, 0])
@@ -168,7 +166,7 @@ if __name__ == '__main__':
     # np.savetxt('test_label.txt',y_test)
 
     # 1. Spilt the training data set to form validation and training data sets. (50% random)
-    X_train, X_valid, y_train, y_valid = train_test_split(x, y, test_size=0.50, random_state=42)
+    X_train, X_valid, y_train, y_valid = train_test_split(x, y, test_size=0.50, shuffle=True, random_state=None)
 
     # Feature Scaling
     sc = StandardScaler()
@@ -178,13 +176,13 @@ if __name__ == '__main__':
     '''Classification using linear SVM'''
 
     #   1. Train a set of linear SVMs with different values of the regularisation parameter C using the training data set.
-    opt_C = optimize_linearK()
+    opt_C = linear_kernel()
     svm(opt_C, X_train, y_train, X_valid, y_valid)  # training svm with opt_C
 
     '''Classification using Gaussian (RBF) kernel SVM'''
     # 1. choose 50% of the training set as the cross validation set. Next, divide the cross validation set into 5 subsets of equal size.
 
-    opt_C, opt_gamma = optimize_rbfK()
+    opt_C, opt_gamma = RBF_Kernel()
     classifier = SVC(C=opt_C, gamma=opt_gamma, kernel='rbf', random_state=0)
     classifier.fit(x, y.ravel())
     print('Corresponding Optimal Intercept : ', classifier.intercept_)
