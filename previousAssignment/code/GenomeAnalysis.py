@@ -1,10 +1,12 @@
 import csv
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+
 
 def parse_input(filename, x, y):
     row_num = 0
@@ -25,11 +27,11 @@ def parse_input(filename, x, y):
 
     return x, y
 
+
 def linear_kernel():
     i, max_acc, opt_C, opt_gamma = 0, 0, 0, 0
     C_values = [0.001, 0.01, 0.1, 1, 10, 100, 150, 200]
-    acc_array = np.zeros((len(C_values), 1))
-    c_array = np.zeros((len(C_values), 1))
+    acc_array, c_array = np.zeros((len(C_values), 1)), np.zeros((len(C_values), 1))
 
     for C in C_values:
         classifier = SVC(C=C, kernel='linear', random_state=0)
@@ -49,7 +51,7 @@ def linear_kernel():
     print("Optimal Value of C is : ", opt_C)
     # print(acc_array)
     # print(c_array)
-
+    # Uncomment this to plot the graphs
     # plt.plot(c_array, acc_array)
     # plt.xlabel("C Value")
     # plt.ylabel("Accuracy Value")
@@ -58,6 +60,7 @@ def linear_kernel():
     # plt.xscale('log')
     # plt.show()
     return opt_C
+
 
 def svm(C, X_train, y_train, X_valid, y_valid):
     classifier = SVC(C=C, kernel='linear', random_state=0)
@@ -73,6 +76,7 @@ def svm(C, X_train, y_train, X_valid, y_valid):
     Accuracy = (cm[0, 0] + cm[1, 1]) / (y_valid.size)
     print("Accuracy = ", Accuracy * 100)
 
+
 def RBF_Kernel():
     DataSet1 = pd.DataFrame(X_valid)
     DataSet2 = pd.DataFrame(y_valid)
@@ -81,7 +85,7 @@ def RBF_Kernel():
     x_columns = np.r_[0:8]
     X = DataSet.iloc[:, x_columns].values  # X feature vector
     C_range = [0.001, 0.01, 0.1, 1, 10, 100, 150, 200]
-    gamma_range = [0.001,0.01, 0.1, 1, 10, 100, 150, 200]
+    gamma_range = [0.001, 0.01, 0.1, 1, 10, 100, 150, 200]
 
     m1 = len(C_range)
 
@@ -91,8 +95,7 @@ def RBF_Kernel():
     for C in C_range:
         p = 0
         for gamma in gamma_range:
-            Avg_Acc = 0
-            k = 5
+            Avg_Acc, k = 0, 5
             ss = int(X.shape[0] / k)
             for i in range(k):
                 x_kfold_test = DataSet.iloc[i * ss: (i + 1) * ss, x_columns].values  # Test subset
@@ -109,22 +112,30 @@ def RBF_Kernel():
 
                 cm = confusion_matrix(y_kfold_test, y_kfold_pred)
                 Accuracy = (cm[0, 0] + cm[1, 1]) / (y_kfold_test.size)
-                Avg_Acc = Avg_Acc + Accuracy  # +=
-            Avg_Acc = Avg_Acc / 5   #np.avg_accuracy
+                Avg_Acc += Accuracy
+            Avg_Acc = (Avg_Acc) / 5
             print("Set Avg Acc = ", Avg_Acc * 100)
             acc_mat[q][p] = (Avg_Acc) * 100
             if Avg_Acc * 100 > max_acc:
                 max_acc = acc_mat[q][p]
-                # print(opt_C)
                 opt_C = C
                 opt_gamma = gamma
-            p = p + 1
-        q = q + 1
+            p += 1
+        q += 1
     print(acc_mat)
     print("Maximum Accuracy : ", max_acc)
     print("Optimal Value of C : ", opt_C)
     print("Optimal Value of Gamma : ", opt_gamma)
     print("Optimal Value of Sigma : ", np.sqrt(np.divide(1, 2 * opt_gamma)))
+
+    # Uncomment this to plot the graphs
+    # plt.plot(C_range, acc_mat[:, 0])
+    # plt.xlabel("C Value")
+    # plt.ylabel("Accuracy Value")
+    # plt.yscale('linear')
+    # plt.grid(True)
+    # plt.xscale('log')
+    # plt.show()
     # plt.plot(acc_mat[:, 0])
     # plt.show()
     return opt_C, opt_gamma
@@ -132,16 +143,16 @@ def RBF_Kernel():
 
 def save_output(y_pred_test, filename_test, save_file_name_output):
     row_num_test = 0
-    f = open(filename_test)
-    f1 = open(save_file_name_output, 'w+')
+    file_test = open(filename_test)
+    file_output = open(save_file_name_output, 'w+')
 
-    for line in f.readlines():
+    for line in file_test.readlines():
         text = str(int(y_pred_test[row_num_test])) + line[1:]
-        f1.write(text)
+        file_output.write(text)
         row_num_test = row_num_test + 1
 
-    f.close()
-    f1.close()
+    file_test.close()
+    file_output.close()
 
 
 if __name__ == '__main__':
@@ -180,7 +191,7 @@ if __name__ == '__main__':
     svm(opt_C, X_train, y_train, X_valid, y_valid)  # training svm with opt_C
 
     '''Classification using Gaussian (RBF) kernel SVM'''
-    # 1. choose 50% of the training set as the cross validation set. Next, divide the cross validation set into 5 subsets of equal size.
+    # 2. choose 50% of the training set as the cross validation set. Next, divide the cross validation set into 5 subsets of equal size.
 
     opt_C, opt_gamma = RBF_Kernel()
     classifier = SVC(C=opt_C, gamma=opt_gamma, kernel='rbf', random_state=0)
