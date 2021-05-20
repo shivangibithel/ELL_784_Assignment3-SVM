@@ -18,7 +18,9 @@ import pandas as pd
 # Use a goodness-of-fit measure for polynomials of different order.
 # Can you distinguish overfitting, underfitting, and the best fit?
 # Obtain an estimate for the noise variance.
-# Introduce regularisation and observe the changes. For quadratic regularisation, can you obtain an estimate of the optimal value for the regularisation parameter lamba? What is your corresponding best guess for the underlying polynomial? And the noise variance?
+# Introduce regularisation and observe the changes. For quadratic regularisation,
+# can you obtain an estimate of the optimal value for the regularisation parameter lamba?
+# What is your corresponding best guess for the underlying polynomial? And the noise variance?
 # Now repeat all of the above using the full data set of 100 data points.
 # How are your results affected by adding more data? Comment on the differences.
 # What is your final estimate of the underlying polynomial? Why?
@@ -64,13 +66,13 @@ def parse_input():
     y = np.asarray(y, dtype=float).reshape((n, 1))
     x = x[0:training_count, :]
     y = y[0:training_count, :]
-
+    # Please uncomment to visualize.Commenting so that the code execution is not stopped for the want of showing plots.
     # Data Visualization
-    plt.scatter(x, y, color="MediumVioletRed", alpha=0.4)
-    plt.title("Data Visualization " + str(training_count) + ' data points')
-    plt.xlabel("input variable x")
-    plt.ylabel("target variable y")
-    plt.show()
+    # plt.scatter(x, y, color="MediumVioletRed", alpha=0.4)
+    # plt.title("Data Visualization " + str(training_count) + ' data points')
+    # plt.xlabel("input variable x")
+    # plt.ylabel("target variable y")
+    # plt.show()
     return reg_type
 
 # self implementation of k-fold
@@ -136,17 +138,18 @@ def find_poly_degree(reg_type):
 
     #Identifying fit of the model
     print("MSE ", mse_mat_train, mse_mat_test )
-    if(reg_type == 0):
-        plt.plot(np.log10(mse_mat_train[:,:]), color='LightSlateGray', label='Train Error')
-        plt.plot(np.log10(mse_mat_test[:,:]), color='MediumVioletRed', label='Test Error')
-        plt.xlabel('Degree')
-    else:
-        plt.plot(np.log10(mse_mat_train[deg, :]), color='LightSlateGray', label='Train Error')
-        plt.plot(np.log10(mse_mat_test[deg, :]), color='MediumVioletRed', label='Test Error')
-        plt.xlabel('Regularizer Lambda Index in Range [1e-2, 1e-1, 1, 10, 100]')
-    plt.ylabel('Error')
-    plt.legend(loc="upper right")
-    plt.show()
+    # Please uncomment to visualize.Commenting so that the code execution is not stopped for the want of showing plots
+    # if(reg_type == 0):
+    #     plt.plot(np.log10(mse_mat_train[:,:]), color='LightSlateGray', label='Train Error')
+    #     plt.plot(np.log10(mse_mat_test[:,:]), color='MediumVioletRed', label='Test Error')
+    #     plt.xlabel('Degree')
+    # else:
+    #     plt.plot(np.log10(mse_mat_train[deg, :]), color='LightSlateGray', label='Train Error')
+    #     plt.plot(np.log10(mse_mat_test[deg, :]), color='MediumVioletRed', label='Test Error')
+    #     plt.xlabel('Regularizer Lambda Index in Range [1e-2, 1e-1, 1, 10, 100]')
+    # plt.ylabel('Error')
+    # plt.legend(loc="upper right")
+    # plt.show()
     print("MAE ", mae_mat_train, mae_mat_test)
     print("GOF ", r2_gof_test)
     return deg, opt_reg_lambda
@@ -174,17 +177,18 @@ def fit_model(deg, reg_lambda):
     print(reg_method.intercept_)
     print("Variance")
     print(np.var(y - reg_method.predict(poly_reg.fit_transform(x))))
-    # visualising the data prediction results -- do we have to?
-    plt.scatter(x, y, color='MediumVioletRed', alpha=0.4, label='Data')
-    X_grid = np.arange(min(x), max(x), 0.001)
-    X_grid = X_grid.reshape(len(X_grid), 1)
-    x = X_grid
-    y = reg_method.predict(poly_reg.fit_transform(X_grid))
-    [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
-    plt.plot(x, y, color='LightSlateGray', label='Model')
-    plt.xlabel("X ")
-    plt.ylabel("Y")
-    plt.show()
+    # Please uncomment to visualize.Commenting so that the code execution is not stopped for the want of showing plots
+    # visualising the data prediction results
+    # plt.scatter(x, y, color='MediumVioletRed', alpha=0.4, label='Data')
+    # X_grid = np.arange(min(x), max(x), 0.001)
+    # X_grid = X_grid.reshape(len(X_grid), 1)
+    # x = X_grid
+    # y = reg_method.predict(poly_reg.fit_transform(X_grid))
+    # [x, y] = zip(*sorted(zip(x, y), key=lambda x: x[0]))
+    # plt.plot(x, y, color='LightSlateGray', label='Model')
+    # plt.xlabel("X ")
+    # plt.ylabel("Y")
+    # plt.show()
 
 if __name__ == '__main__':
     reg_type = parse_input()
