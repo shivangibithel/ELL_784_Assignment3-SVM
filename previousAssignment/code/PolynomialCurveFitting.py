@@ -90,7 +90,7 @@ def kfold(k_idx, data_len):
 
 # Find the optimal degree for the polynomial
 def find_poly_degree(reg_type):
-    global deg, poly_reg, x_train, y_train, X_poly, reg_method
+    global deg, poly_reg, x_train, y_train, polyfit_x, reg_method
     if reg_type == 0:
         # For normal regression regularizer is 0 and set to one iteration
         lambda_range = [0]
@@ -102,8 +102,6 @@ def find_poly_degree(reg_type):
     k = 5
     k_range = [0,1,2,3,4]
     data_len = len(x)
-    # data_x = pd.DataFrame(x)
-    # ss = int(data_x.shape[0] / k)
     r2_gof_train, mse_mat_train, mae_mat_train, r2_gof_test, mse_mat_test, mae_mat_test = np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len)),np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len))
     for poly_degree in degree_range:
         poly_reg = PolynomialFeatures(degree=poly_degree)
@@ -115,22 +113,15 @@ def find_poly_degree(reg_type):
                 train_index, test_index = kfold(k_idx, data_len)
                 x_train, x_valid = x[train_index], x[test_index]
                 y_train, y_valid = y[train_index], y[test_index]
-                X_poly = poly_reg.fit_transform(x_train)
-                poly_reg.fit(X_poly, y_train)
+
                 reg_method = Ridge(alpha=reg_lambda)
-                reg_method.fit(X_poly, y_train)
+                polyfit_x = poly_reg.fit_transform(x_train)
+                poly_reg.fit(polyfit_x, y_train)
+                reg_method.fit(polyfit_x, y_train)
 
-                # Mean Square Error
-                mse_train_error_arr[k_idx] = mean_squared_error(y_train, reg_method.predict(X_poly))
-                mse_test_error_arr[k_idx] = mean_squared_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid)))
-                # Mean Absolute Error
-                mae_train_error_arr[k_idx] = mean_absolute_error(y_train, reg_method.predict(X_poly))
-                mae_test_error_arr[k_idx] = mean_absolute_error(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid)))
-                # Goodness of Fit
-                train_fit_arr[k_idx] = r2_score(y_train, reg_method.predict(X_poly))
-                test_fit_arr[k_idx] =  r2_score(y_valid, reg_method.predict(poly_reg.fit_transform(x_valid)))
-
-                # k_idx = k_idx + 1
+                # train_error
+                mse_train_error_arr[k_idx],mae_train_error_arr[k_idx], train_fit_arr[k_idx] = training_metrics(polyfit_x, reg_method, y_train)
+                mse_test_error_arr[k_idx],  mae_test_error_arr[k_idx], test_fit_arr[k_idx] = training_metrics(poly_reg.fit_transform(x_valid), reg_method, y_valid)
             # Average over k folds
             mse_mat_train[poly_degree, lambda_idx] = np.average(mse_train_error_arr)
             mse_mat_test[poly_degree, lambda_idx] = np.average(mse_test_error_arr)
@@ -162,6 +153,14 @@ def find_poly_degree(reg_type):
     print("GOF ", r2_gof_test)
     return deg, opt_reg_lambda
 
+
+def training_metrics(x, reg_method, y):
+    mse_error = mean_squared_error(y, reg_method.predict(x))
+    mae_error = mean_absolute_error(y, reg_method.predict(x))
+    gof_fit = r2_score(y, reg_method.predict(x))
+    return mse_error, mae_error, gof_fit
+
+
 #  Fit Model to Data
 def fit_model(deg, reg_lambda):
     global poly_reg, reg_method, x, y
@@ -177,7 +176,7 @@ def fit_model(deg, reg_lambda):
     print(reg_method.intercept_)
     print("Variance")
     print(np.var(y - reg_method.predict(poly_reg.fit_transform(x))))
-    # visualising the data prediction results
+    # visualising the data prediction results -- do we have to?
     plt.scatter(x, y, color='MediumVioletRed', alpha=0.4, label='Data')
     X_grid = np.arange(min(x), max(x), 0.001)
     X_grid = X_grid.reshape(len(X_grid), 1)
