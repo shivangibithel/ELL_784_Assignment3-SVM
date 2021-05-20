@@ -54,7 +54,6 @@ def parse_input():
     except:
         sys.exit(1)
 
-
     with open(filename, 'r') as f:
         reader = csv.reader(f, delimiter=' ')
         for row in reader:
@@ -64,8 +63,7 @@ def parse_input():
     n = len(x)
     x = np.asarray(x, dtype=float).reshape((n, 1))
     y = np.asarray(y, dtype=float).reshape((n, 1))
-    x = x[0:training_count, :]
-    y = y[0:training_count, :]
+    x,y = x[0:training_count, :] ,y[0:training_count, :]
     # Please uncomment to visualize.Commenting so that the code execution is not stopped for the want of showing plots.
     # Data Visualization
     # plt.scatter(x, y, color="MediumVioletRed", alpha=0.4)
@@ -113,8 +111,7 @@ def find_poly_degree(reg_type):
             mse_train_error_arr, mse_test_error_arr, mae_train_error_arr, mae_test_error_arr, train_fit_arr, test_fit_arr = np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k)
             for k_idx in k_range:
                 train_index, test_index = kfold(k_idx, data_len)
-                x_train, x_valid = x[train_index], x[test_index]
-                y_train, y_valid = y[train_index], y[test_index]
+                x_train, x_valid, y_train, y_valid = x[train_index], x[test_index],y[train_index], y[test_index]
 
                 reg_method = Ridge(alpha=reg_lambda)
                 polyfit_x = poly_reg.fit_transform(x_train)
@@ -130,9 +127,7 @@ def find_poly_degree(reg_type):
                 = np.average(mse_train_error_arr), np.average(mse_test_error_arr), np.average(mae_train_error_arr), np.average(mae_test_error_arr), np.average(train_fit_arr), np.average(test_fit_arr)
 
             if (r2_gof_test[poly_degree, lambda_idx] > best_gof):
-                best_gof = r2_gof_test[poly_degree, lambda_idx]
-                deg = poly_degree
-                opt_reg_lambda = reg_lambda
+                best_gof, deg,opt_reg_lambda = r2_gof_test[poly_degree, lambda_idx],poly_degree,reg_lambda
             lambda_idx = lambda_idx + 1
     print('Optimal Degree ', deg, 'Optimal Lambda ', opt_reg_lambda)
 
@@ -162,7 +157,6 @@ def training_metrics(x, reg_method, y):
     return mse_error, mae_error, gof_fit
 
 
-#  Fit Model to Data
 def fit_model(deg, reg_lambda):
     global poly_reg, reg_method, x, y
     # Fit Regression Model
