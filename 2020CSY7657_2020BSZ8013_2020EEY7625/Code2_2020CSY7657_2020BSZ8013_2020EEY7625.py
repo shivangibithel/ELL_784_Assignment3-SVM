@@ -199,4 +199,4 @@ if __name__ == '__main__':
     print('Corresponding Optimal Intercept : ', classifier.intercept_)
     y_pred_test = classifier.predict(X_test)
 
-    save_output(y_pred_test, '..\data\RNA_test_data.txt', '..\data\RNA_test_output.txt')
+    save_output(y_pred_test, 'data\RNA_test_data.txt', 'data\RNA_test_output.txt')
