@@ -150,9 +150,10 @@ def find_poly_degree(reg_type):
         plt.plot(np.log10(mse_mat_train[deg, :]), color='LightSlateGray', label='Train Error')
         plt.plot(np.log10(mse_mat_test[deg, :]), color='MediumVioletRed', label='Test Error')
         plt.xlabel('Lambda index in range [1e-3[0], 1e-2[1], 1e-1[2], 1[3], 10[4], 100[5]]')
-    # plt.ylabel('Error')
-    # plt.legend(loc="upper right")
-    # plt.show()
+
+    plt.ylabel('Error')
+    plt.legend(loc="upper right")
+    plt.show()
     print("MAE ", mae_mat_train, mae_mat_test)
     print("GOF ", r2_gof_test)
     return deg, opt_reg_lambda

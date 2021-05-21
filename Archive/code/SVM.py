@@ -17,6 +17,22 @@ from sklearn.svm import SVC
 # tsne -- optional  -- similar to pca visualization but used for non linear data
 # restructuring  -- done
 
+
+
+# Classification using linear SVM:
+# Spilt the training data set to form validation and training data sets.
+# Train a set of linear SVMs with different values of the regularisation parameter C using the training data set.
+# For each value of C, train an SVM and use each trained SVM model to classify the validation data set.
+# Plot the classification accuracy as a function of the parameter C.
+# Classification using Gaussian (RBF) kernel SVM: k(x_1, x_2) = exp (-||(x_1 - x_2||^2/2 \sigma^2))
+# Use 5-fold cross validation to choose the best C and \sigma To do so, first randomly choose 50% of the training set as the cross validation set.
+# Next, divide the cross validation set into 5 subsets of equal size.
+# Each subset is in turn used to validate the classifier trained on the remaining 4 subsets.
+# So you will have 5 trained SVMs and 5 validation subsets.
+# The cross validation accuracy is average accuracy over the 5 validation subsets.
+# (Do not use the built-in cross validation option in LIBSVM).
+# For both C and \sigma try a number of different values and be sure to try all possible of pairs of values for C and \sigma. Show a matrix of your cross validation results, where the entry (i, j) of the matrix corresponds to the classification accuracy on the cross validation set with ith value of C and j th value of \sigma. Next, use the entire training set to train an SVM classifier with the best C and \sigma values determined via the cross validation procedure outlined above. Finally, use the trained SVM model to classify the test data set and write the results to a file using the same format as the training data set.
+
 '''--------------------------Reading the train data---------------------------------'''
 
 filename = '..\data\RNA_train_data.txt'
@@ -138,12 +154,12 @@ with open(filename_test, 'r') as f:
 
 '''-------Splitting the dataset into the Training set and Validation set---------'''
 
-X_train, X_valid, y_train, y_valid = train_test_split(x, y, test_size=0.50, random_state=0)
+x_train, X_valid, y_train, y_valid = train_test_split(x, y, test_size=0.50, random_state=0)
 
 '''-------------------------Feature Scaling---------------------------------'''
 
 sc = StandardScaler()
-X_train = sc.fit_transform(X_train)
+x_train = sc.fit_transform(x_train)
 X_valid = sc.transform(X_valid)
 
 '''---------- data in numpy array for online visualisation(in 8 dimensions)----------------'''
@@ -152,7 +168,7 @@ save_file_name = '..\data\Data_SVM_'
 
 np.save(save_file_name + 'X.npy', x)
 np.save(save_file_name + 'y.npy', y)
-np.save(save_file_name + 'X_train.npy', X_train)
+np.save(save_file_name + 'x_train.npy', x_train)
 np.save(save_file_name + 'X_valid.npy', X_valid)
 np.save(save_file_name + 'y_train.npy', y_train)
 np.save(save_file_name + 'y_valid.npy', y_valid)
@@ -199,7 +215,7 @@ plt.show()
 '''------------Fitting SVM to the Training set(TRAINING)--------------------'''
 
 classifier = SVC(C=0.001, kernel='linear', random_state=0)
-classifier.fit(X_train, y_train.ravel())
+classifier.fit(x_train, y_train.ravel())
 print(classifier.coef_)
 print(classifier.intercept_)
 
@@ -226,7 +242,7 @@ c_array = np.zeros((len(C_2d_range), 1))
 
 for C in C_2d_range:
     classifier = SVC(C=C, kernel='linear', random_state=0)
-    classifier.fit(X_train, y_train.ravel())
+    classifier.fit(x_train, y_train.ravel())
     y_pred_valid = classifier.predict(X_valid)
     cm = confusion_matrix(y_valid, y_pred_valid)
     Accuracy = (cm[0, 0] + cm[1, 1]) / y_valid.size
@@ -244,7 +260,7 @@ plt.plot(acc_array)
 plt.show()
 
 classifier = SVC(C=opt_C, kernel='linear', random_state=0)
-classifier.fit(X_train, y_train)
+classifier.fit(x_train, y_train)
 print('Corresponding Optimal Coefficients and Intercept')
 print(classifier.coef_)
 print(classifier.intercept_)
@@ -266,11 +282,11 @@ for C in C_2d_range:
         Avg_Acc = 0
         kf = KFold(n_splits=5, random_state=None, shuffle=False)
         for train_index, test_index in kf.split(x):
-            X_train, X_valid = x[train_index], x[test_index]
+            x_train, X_valid = x[train_index], x[test_index]
             y_train, y_valid = y[train_index], y[test_index]
 
             classifier = SVC(C=C, gamma=gamma, kernel='rbf', random_state=0)
-            classifier.fit(X_train, y_train.ravel())
+            classifier.fit(x_train, y_train.ravel())
 
             y_pred_valid = classifier.predict(X_valid)
 
