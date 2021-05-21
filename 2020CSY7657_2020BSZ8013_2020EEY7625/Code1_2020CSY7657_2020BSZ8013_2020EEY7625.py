@@ -29,7 +29,7 @@ from sklearn.linear_model import Ridge
 # 100 - degree 9
 def parse_input():
     global x, y
-    filename = '..\data\\regression_data.txt'
+    filename = 'data\\regression_data.txt'
     x, y = [], []
     training_count = 0
     reg_type = 0 # Valid values 0 & 1

@@ -157,22 +157,22 @@ def save_output(y_pred_test, filename_test, save_file_name_output):
 
 if __name__ == '__main__':
     # Read Train Data
-    df = pd.read_csv('..\data\RNA_train_data.txt', sep=" ", header=None)
+    df = pd.read_csv('data\\RNA_train_data.txt', sep=" ", header=None)
     count = len(df)
     print('No of Train Records = ', count)
     x = np.zeros((count, 8))  # 8 features per record
     y = np.zeros((count, 1))  # 1 label per record
-    x, y = parse_input('..\data\RNA_train_data.txt', x, y)
+    x, y = parse_input('data\\RNA_train_data.txt', x, y)
     # np.savetxt('train_data.txt',x)
     # np.savetxt('train_label.txt',y)
 
     # Read Test Data
-    df = pd.read_csv('..\data\RNA_test_data.txt', sep=" ", header=None)
+    df = pd.read_csv('data\\RNA_test_data.txt', sep=" ", header=None)
     count_test = len(df)
     X_test = np.zeros((count_test, 8))  # 8 features per record
     y_test = np.zeros((count_test, 1))
     print('No of Test Records = ', count_test)
-    X_test, y_test = parse_input('..\data\RNA_test_data.txt', X_test, y_test)
+    X_test, y_test = parse_input('data\\RNA_test_data.txt', X_test, y_test)
     # np.savetxt('test_data.txt',X_test)
     # np.savetxt('test_label.txt',y_test)
 
