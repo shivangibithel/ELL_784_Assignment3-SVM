@@ -5,10 +5,8 @@ import sys
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import r2_score
-from sklearn.model_selection import KFold
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import Ridge
-import pandas as pd
 # Problem Statement
 # ==================
 # To begin with, use only the first 20 data points in your file.
@@ -95,20 +93,23 @@ def find_poly_degree(reg_type):
         # For normal regression regularizer is 0 and set to one iteration
         lambda_range = [0]
     else:
-        lambda_range = [1e-2, 1e-1, 1, 10, 1e2]
+        lambda_range = [1e-3, 1e-2, 1e-1, 1, 10, 1e2]
     lambda_len = len(lambda_range)
     degree_range = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     deg, best_gof, reg_lambda = 0, 0, 0
     k = 5
     k_range = [0,1,2,3,4]
     data_len = len(x)
-    r2_gof_train, mse_mat_train, mae_mat_train, r2_gof_test, mse_mat_test, mae_mat_test = np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len)),np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len))
+    r2_gof_train, mse_mat_train, mae_mat_train, r2_gof_test, mse_mat_test, mae_mat_test = \
+        np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len)),np.zeros((11, lambda_len)), \
+        np.zeros((11, lambda_len)), np.zeros((11, lambda_len))
     for poly_degree in degree_range:
         poly_reg = PolynomialFeatures(degree=poly_degree)
         lambda_idx = 0
 
         for reg_lambda in lambda_range:
-            mse_train_error_arr, mse_test_error_arr, mae_train_error_arr, mae_test_error_arr, train_fit_arr, test_fit_arr = np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k)
+            mse_train_error_arr, mse_test_error_arr, mae_train_error_arr, mae_test_error_arr, train_fit_arr, test_fit_arr \
+                = np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k),np.zeros(k)
             for k_idx in k_range:
                 train_index, test_index = kfold(k_idx, data_len)
                 x_train, x_valid, y_train, y_valid = x[train_index], x[test_index],y[train_index], y[test_index]
@@ -119,12 +120,18 @@ def find_poly_degree(reg_type):
                 reg_method.fit(polyfit_x, y_train)
 
                 # train_error
-                mse_train_error_arr[k_idx],mae_train_error_arr[k_idx], train_fit_arr[k_idx] = training_metrics(polyfit_x, reg_method, y_train)
-                mse_test_error_arr[k_idx],  mae_test_error_arr[k_idx], test_fit_arr[k_idx] = training_metrics(poly_reg.fit_transform(x_valid), reg_method, y_valid)
-            # Average over k folds
+                mse_train_error_arr[k_idx],mae_train_error_arr[k_idx], train_fit_arr[k_idx] = \
+                    training_metrics(polyfit_x, reg_method, y_train)
+                mse_test_error_arr[k_idx],  mae_test_error_arr[k_idx], test_fit_arr[k_idx] =\
+                    training_metrics(poly_reg.fit_transform(x_valid), reg_method, y_valid)
 
-            mse_mat_train[poly_degree, lambda_idx], mse_mat_test[poly_degree, lambda_idx], mae_mat_train[poly_degree, lambda_idx], mae_mat_test[poly_degree, lambda_idx], r2_gof_train[poly_degree, lambda_idx], r2_gof_test[poly_degree, lambda_idx]\
-                = np.average(mse_train_error_arr), np.average(mse_test_error_arr), np.average(mae_train_error_arr), np.average(mae_test_error_arr), np.average(train_fit_arr), np.average(test_fit_arr)
+            # Average over k folds
+            mse_mat_train[poly_degree, lambda_idx], mse_mat_test[poly_degree, lambda_idx], \
+            mae_mat_train[poly_degree, lambda_idx], mae_mat_test[poly_degree, lambda_idx], \
+            r2_gof_train[poly_degree, lambda_idx], r2_gof_test[poly_degree, lambda_idx]\
+                = np.average(mse_train_error_arr), np.average(mse_test_error_arr), \
+                  np.average(mae_train_error_arr), np.average(mae_test_error_arr), np.average(train_fit_arr), \
+                  np.average(test_fit_arr)
 
             if (r2_gof_test[poly_degree, lambda_idx] > best_gof):
                 best_gof, deg,opt_reg_lambda = r2_gof_test[poly_degree, lambda_idx],poly_degree,reg_lambda
@@ -134,14 +141,14 @@ def find_poly_degree(reg_type):
     #Identifying fit of the model
     print("MSE ", mse_mat_train, mse_mat_test )
     # Please uncomment to visualize.Commenting so that the code execution is not stopped for the want of showing plots
-    # if(reg_type == 0):
-    #     plt.plot(np.log10(mse_mat_train[:,:]), color='LightSlateGray', label='Train Error')
-    #     plt.plot(np.log10(mse_mat_test[:,:]), color='MediumVioletRed', label='Test Error')
-    #     plt.xlabel('Degree')
-    # else:
-    #     plt.plot(np.log10(mse_mat_train[deg, :]), color='LightSlateGray', label='Train Error')
-    #     plt.plot(np.log10(mse_mat_test[deg, :]), color='MediumVioletRed', label='Test Error')
-    #     plt.xlabel('Regularizer Lambda Index in Range [1e-2, 1e-1, 1, 10, 100]')
+    if(reg_type == 0):
+        plt.plot(np.log10(mse_mat_train[:,:]), color='LightSlateGray', label='Train Error')
+        plt.plot(np.log10(mse_mat_test[:,:]), color='MediumVioletRed', label='Test Error')
+        plt.xlabel('Degree')
+    else:
+        plt.plot(np.log10(mse_mat_train[deg, :]), color='LightSlateGray', label='Train Error')
+        plt.plot(np.log10(mse_mat_test[deg, :]), color='MediumVioletRed', label='Test Error')
+        plt.xlabel('Lambda index in range [1e-3[0], 1e-2[1], 1e-1[2], 1[3], 10[4], 100[5]]')
     # plt.ylabel('Error')
     # plt.legend(loc="upper right")
     # plt.show()

@@ -113,7 +113,9 @@ def RBF_Kernel():
                 cm = confusion_matrix(y_kfold_test, y_kfold_pred)
                 Accuracy = (cm[0, 0] + cm[1, 1]) / (y_kfold_test.size)
                 Avg_Acc += Accuracy
-            Avg_Acc = (Avg_Acc) / 5
+
+            Avg_Acc = (Avg_Acc) / k
+
             print("Set Avg Acc = ", Avg_Acc * 100)
             acc_mat[q][p] = (Avg_Acc) * 100
             if Avg_Acc * 100 > max_acc:
