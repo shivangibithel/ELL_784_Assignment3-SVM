@@ -104,6 +104,7 @@ def find_poly_degree(reg_type):
         np.zeros((11, lambda_len)), np.zeros((11, lambda_len)), np.zeros((11, lambda_len)),np.zeros((11, lambda_len)), \
         np.zeros((11, lambda_len)), np.zeros((11, lambda_len))
     for poly_degree in degree_range:
+
         poly_reg = PolynomialFeatures(degree=poly_degree)
         lambda_idx = 0
 
@@ -167,6 +168,10 @@ def training_metrics(x, reg_method, y):
 def fit_model(deg, reg_lambda):
     global poly_reg, reg_method, x, y
     # Fit Regression Model
+    # Generate a new feature matrix consisting of  all  polynomial combinations  of   the  features
+    # with degree less than or equal to the specified degree.
+    # For example, if an input sample is two dimensional and of the form[a, b],
+    # the degree-2 polynomial features are[1, a, b, a ^ 2, ab, b ^ 2].
     poly_reg = PolynomialFeatures(degree=deg)
     X_poly = poly_reg.fit_transform(x)
     poly_reg.fit(X_poly, y)
@@ -177,6 +182,7 @@ def fit_model(deg, reg_lambda):
     print("Intercept")
     print(reg_method.intercept_)
     print("Variance")
+    # The variance is the average of the squared deviations from the mean
     print(np.var(y - reg_method.predict(poly_reg.fit_transform(x))))
     # Please uncomment to visualize.Commenting so that the code execution is not stopped for the want of showing plots
     # visualising the data prediction results
